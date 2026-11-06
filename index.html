@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="color-scheme" content="dark light">
+<script>document.documentElement.dataset.theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"</script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e0e10'/%3E%3Cg fill='%23f3efe6'%3E%3Crect x='3.5' y='2.6' width='4' height='3' rx='1'/%3E%3Crect x='10.5' y='2.6' width='4' height='3' rx='1'/%3E%3Crect x='17.5' y='2.6' width='4' height='3' rx='1'/%3E%3Crect x='24.5' y='2.6' width='4' height='3' rx='1'/%3E%3Crect x='3.5' y='26.4' width='4' height='3' rx='1'/%3E%3Crect x='10.5' y='26.4' width='4' height='3' rx='1'/%3E%3Crect x='17.5' y='26.4' width='4' height='3' rx='1'/%3E%3Crect x='24.5' y='26.4' width='4' height='3' rx='1'/%3E%3C/g%3E%3Cg fill='none' stroke='%23ff4a4f' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 10h3a5 6 0 0 1 0 12h-3z'/%3E%3Cpath d='M26.4 11.1A5 6 0 1 0 26.4 20.9'/%3E%3C/g%3E%3C/svg%3E">
 <title>DC Film Slate · November 5–11, 2026</title>
 <style>
@@ -179,7 +180,7 @@ kbd{font:11px var(--font-m);border:1px solid var(--line);border-radius:4px;paddi
  <header class="top">
   <div class="brandrow">
    <div><h1 class="brand">DC Film <span>Slate</span></h1><div class="issue" id="issue"></div></div>
-   <div class="hright"><span class="stats" id="stats"></span><button class="iconbtn" id="theme" title="Switch light/dark">☾</button></div>
+   <div class="hright"><span class="stats" id="stats"></span><button class="iconbtn" id="theme" title="Light or dark for this visit; otherwise the page follows your system">☾</button></div>
   </div>
  </header>
  <h2 class="sec">Highlights <small>by rule: film prints, guests, restorations, one-night-only repertory</small><span class="spacer"></span>
@@ -585,7 +586,12 @@ document.addEventListener("click", e => {
   if (t.dataset.g && t.closest("#group")) { st.group = t.dataset.g; render(); return; }
   if (t.dataset.day) { st.day = t.dataset.day; render(); return; }
   if (t.id === "clearall" || t.id === "clearall2") { const keep = {view: st.view, day: st.day, group: st.group, sort: st.sort}; st = {...structuredClone(DEF), ...keep}; render(); return; }
-  if (t.id === "theme") { setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"); return; }
+  if (t.id === "theme") {
+    const n = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    pick = n === sysTheme() ? null : n;  // back to the system's choice clears the override
+    try { pick ? sessionStorage.setItem("dcfs-theme", pick) : sessionStorage.removeItem("dcfs-theme"); } catch (_) {}
+    setTheme(n); return;
+  }
   if (t.id === "fbtn") { document.body.classList.toggle("sheet"); return; }
   if (t.id === "done") { document.body.classList.remove("sheet"); return; }
   if (t.id === "sl" || t.id === "sr") { const s = $("#strip"); s.scrollBy({left: (t.id === "sr" ? 1 : -1) * s.clientWidth * .8, behavior: "smooth"}); return; }
@@ -608,8 +614,15 @@ document.addEventListener("keydown", e => {
 addEventListener("scroll", closePop, {passive: true});
 addEventListener("hashchange", () => { readHash(); render(); });
 addEventListener("resize", () => document.documentElement.style.setProperty("--barh", $(".bar").offsetHeight + "px"));
-function setTheme(n) { document.documentElement.dataset.theme = n; $("#theme").textContent = n === "dark" ? "☾" : "☀"; try { localStorage.setItem("dcfs-theme", n); } catch (_) {} }
-try { const t = localStorage.getItem("dcfs-theme"); if (t) setTheme(t); } catch (_) {}
+/* theme: follows the system (light by day, dark at night where the system switches); a click overrides it for this visit */
+const SYS = matchMedia("(prefers-color-scheme: dark)");
+const sysTheme = () => SYS.matches ? "dark" : "light";
+function setTheme(n) { document.documentElement.dataset.theme = n; $("#theme").textContent = n === "dark" ? "☾" : "☀"; }
+try { localStorage.removeItem("dcfs-theme"); } catch (_) {}  // choice saved by earlier versions of the page
+let pick = null;
+try { pick = sessionStorage.getItem("dcfs-theme"); } catch (_) {}
+setTheme(pick || sysTheme());
+SYS.addEventListener("change", () => { if (!pick) setTheme(sysTheme()); });
 readHash(); staticParts(); render();
 </script>
 </body>
