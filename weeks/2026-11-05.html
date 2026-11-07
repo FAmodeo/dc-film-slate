@@ -97,7 +97,7 @@ aside.filters::-webkit-scrollbar{display:none}
 .vacts{display:inline-flex;align-items:center;flex:none}.vh .vacts{margin-left:auto}.vcard h3 .vacts{margin-left:2px}
 .vact{border:0;background:none;cursor:pointer;color:var(--faint);width:26px;height:26px;padding:0;border-radius:6px;display:inline-grid;place-items:center;
  font:16px/1 var(--font-ui);letter-spacing:0}
-.vact:hover{color:var(--ink);background:var(--soft)}.vact.star[aria-pressed=true]{color:var(--amber)}.vact svg{width:15px;height:15px}
+.vact:hover{color:var(--ink);background:var(--soft)}.vact.map{width:24px;height:24px;margin-left:2px;text-decoration:none}.tv .vact.map,.vlab .vact.map{width:20px;height:20px}.tv .vact.map svg,.vlab .vact.map svg{width:13px;height:13px}.vact.star[aria-pressed=true]{color:var(--amber)}.vact svg{width:15px;height:15px}
 @media (hover:hover){.vact.hide{opacity:0}.vline:hover .vact.hide,.vh:hover .vact.hide,.vcard h3:hover .vact.hide,.vact.hide:focus-visible{opacity:1}}
 .fs{color:var(--amber);font-size:.9em;margin-right:4px}
 .hidn{background:none;border:0;padding:0;color:var(--mute);font-size:13.5px;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
@@ -135,7 +135,7 @@ h3.dayh{font:800 30px var(--font-h);font-stretch:condensed;text-transform:upperc
 .b{display:inline-block;font:600 9.5px/1.5 var(--font-m);letter-spacing:.5px;text-transform:uppercase;padding:1px 7px;border-radius:99px;border:1px solid var(--line);
  margin-left:7px;vertical-align:3px;color:var(--mute);white-space:nowrap}
 .b.film{background:var(--amber);border-color:var(--amber);color:#111}.b.guests{border-color:var(--accent);color:var(--accent)}.b.new{opacity:.75}
-.trow .tv{font-size:12.5px;color:var(--mute);display:flex;align-items:center;gap:6px;margin-top:3px}.tv>span:last-child{min-width:0}
+.trow .tv{font-size:12.5px;color:var(--mute);display:flex;align-items:center;gap:6px;margin-top:3px}.tv>span:not(.dot){min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.vact.map{flex:none}
 .now{display:flex;align-items:center;gap:8px;color:var(--accent);font:700 11px var(--font-ui);letter-spacing:1.4px;text-transform:uppercase;margin:12px 0 0}
 .now::after{content:"";flex:1;height:1px;background:var(--accent)}
 .fcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;margin:14px 0}
@@ -268,7 +268,10 @@ const favFirst = (a, b) => (FAV.has(b) ? 1 : 0) - (FAV.has(a) ? 1 : 0);
 const starMark = k => FAV.has(k) ? `<span class="fs" title="Starred">★</span>` : "";
 const ICON = {
   hide: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`,
-  show: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`};
+  show: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
+  pin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`};
+// Google Maps with the venue as destination; the visitor's own location (or any start they type) is the origin
+const mapBtn = (k, label) => `<a class="vact map" href="${dirs(V[k], label)}" target="_blank" rel="noopener" title="Directions in Google Maps" aria-label="Directions to ${esc(V[k].name)} in Google Maps">${ICON.pin}</a>`;
 const vacts = k => `<span class="vacts"><button class="vact star" data-fav="${k}" aria-pressed="${FAV.has(k)}" title="${FAV.has(k) ? "Unpin" : "Pin to the top"}" aria-label="Star ${esc(V[k].name)}">${FAV.has(k) ? "★" : "☆"}</button>`
   + `<button class="vact hide" data-hide="${k}" title="Hide this venue" aria-label="Hide ${esc(V[k].name)}">${ICON.hide}</button></span>`;
 
@@ -344,7 +347,7 @@ function filmRow(items) {
     + `</div><div class="times">${items.map(i => timeBtn(i)).join("")}</div></div>`;
 }
 const vhead = (key, label) => `<div class="vh"><span class="dot" style="background:${V[key].color}"></span><span class="vn">${esc(label)}</span>`
-  + `<span class="mt"><span class="sep">· </span>${esc(V[key].area)}</span>${vacts(key)}</div>`;
+  + `<span class="mt"><span class="sep">· </span>${esc(V[key].area)}</span>${mapBtn(key)}${vacts(key)}</div>`;
 function groupBy(list, key) { const m = new Map(); for (const s of list) { const k = key(s); if (!m.has(k)) m.set(k, []); m.get(k).push(s); } return m; }
 const byStart = (a, b) => a.s < b.s ? -1 : a.s > b.s ? 1 : 0;
 const sortTitle = t => t.replace(/^(the|a|an)\s+/i, "");
@@ -364,7 +367,7 @@ function schedule(list) {
       for (const s of items) {
         if (!nowShown && s.s >= NOW) { html += `<div class="now">Now · ${clock(NOW)}</div>`; nowShown = true; }
         html += `<div class="trow"><div class="tt">${timeBtn(s)}</div><div>${title(s)}${badges(s)}</h4>`
-          + `<div class="tv"><span class="dot" style="background:${V[s.v].color}"></span><span>${starMark(s.v)}${esc(s.vl)}</span></div>`
+          + `<div class="tv"><span class="dot" style="background:${V[s.v].color}"></span><span>${starMark(s.v)}${esc(s.vl)}</span>${mapBtn(s.v, s.vl)}</div>`
           + (credits(s) ? `<div class="cred">${esc(credits(s))}</div>` : "") + (s.se ? `<div class="ser">${esc(s.se)}</div>` : "") + `</div></div>`;
       }
     } else {
@@ -389,7 +392,7 @@ function films(list) {
     const s = g.find(i => i.d) || g[0], byV = groupBy(g, i => i.vl), sers = [...new Set(g.map(i => i.se).filter(Boolean))];
     return `<div class="fcard">${title(s)}${badges(s, g)}</h4>`
       + (credits(s) ? `<div class="cred">${esc(credits(s))}</div>` : "") + (sers.length ? `<div class="ser">${esc(sers.join(" · "))}</div>` : "")
-      + [...byV].sort(([, a], [, b]) => favFirst(a[0].v, b[0].v)).map(([vl, its]) => `<div class="fvenue"><div class="vlab"><span class="dot" style="background:${V[its[0].v].color}"></span><span>${starMark(its[0].v)}${esc(vl)}</span></div>`
+      + [...byV].sort(([, a], [, b]) => favFirst(a[0].v, b[0].v)).map(([vl, its]) => `<div class="fvenue"><div class="vlab"><span class="dot" style="background:${V[its[0].v].color}"></span><span>${starMark(its[0].v)}${esc(vl)}</span>${mapBtn(its[0].v, vl)}</div>`
         + `<div class="times">${its.map(i => timeBtn(i, dLabel(i.s.slice(0, 10), {weekday: "short"}) + " " + +i.s.slice(8, 10) + " · " + clock(i.s))).join("")}</div></div>`).join("")
       + `<div class="note">${g.length} showing${g.length > 1 ? "s" : ""}${st.up ? " still to come" : " this week"}</div></div>`;
   }).join("");
@@ -398,7 +401,7 @@ function venues(list) {
   const byV = groupBy(list, s => s.v);
   return VKEYS.filter(k => byV.has(k)).sort(favFirst).map(k => {
     const v = V[k], its = byV.get(k).sort(byStart);
-    let html = `<div class="vcard"><h3><span class="dot" style="background:${v.color};width:12px;height:12px"></span>${esc(v.name)}${vacts(k)}</h3>`
+    let html = `<div class="vcard"><h3><span class="dot" style="background:${v.color};width:12px;height:12px"></span>${esc(v.name)}${mapBtn(k)}${vacts(k)}</h3>`
       + `<div class="vmeta">${esc(v.area)} · <a href="${dirs(v)}" target="_blank" rel="noopener">${esc(v.address)}</a> · <a href="${esc(v.url)}" target="_blank" rel="noopener">venue site</a></div>`;
     for (const [d, ds] of groupBy(its, s => s.s.slice(0, 10))) {
       html += `<div class="vh"><span class="vn">${esc(dLabel(d, {weekday: "long", month: "short", day: "numeric"}))}</span></div>`
@@ -514,7 +517,8 @@ function staticParts() {
 }
 
 /* ---- showtime popover: tickets, calendar, directions, Letterboxd ---- */
-const dirs = v => "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(v.name + ", " + v.address);
+// a label like "Smithsonian museums: National Museum of Asian Art" names the building, so route there
+const dirs = (v, label) => "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(label && label.includes(": ") ? label.split(": ").pop() + ", Washington, DC" : v.name + ", " + v.address);
 const lboxd = s => "https://letterboxd.com/search/films/" + encodeURIComponent(s.t + (s.y ? " " + s.y : "")) + "/";
 function openPop(el, s) {
   const pop = $("#pop"), v = V[s.v];
@@ -522,7 +526,7 @@ function openPop(el, s) {
     + `${(s.n || []).length ? "<br>" + esc(s.n.join(" · ")) : ""}</div>`
     + `<a class="primary" href="${esc(s.u)}" target="_blank" rel="noopener">Tickets &amp; details ↗</a>`
     + `<button class="pa" data-ics="${s.id}">Add to calendar</button>`
-    + `<a href="${dirs(v)}" target="_blank" rel="noopener">Directions</a>`
+    + `<a href="${dirs(v, s.vl)}" target="_blank" rel="noopener">Directions</a>`
     + `<a href="${lboxd(s)}" target="_blank" rel="noopener">Look up on Letterboxd</a>`;
   pop.hidden = false;
   const r = el.getBoundingClientRect(), w = pop.offsetWidth, hgt = pop.offsetHeight;
